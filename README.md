@@ -6,10 +6,14 @@ The ambitious goal is eliminate the code editor at all. REPL should be full auto
 
 In the future you'll start a repl (even without a project), start hacking, compose your `-main` function and *just* have your project in the fs properly saved, ready to be compiled to jar :)
 
+Note, this is proof of concept for now. Everything will change :)
+
 ## Done
 
-- `defnc` (define-code) macro allows you preserve fn definition
-- `save` fn dumps the code and updates it properly
+- `cljsh.repl/defnc` (define-code) macro allows you preserve fn definition
+- `cljsh.repl/save` fn dumps the code and updates it properly
+- `cljsh.namespaces/add-requires-from-var` fn to patch fn's namespace with required imports
+- `cljsh.deps/install!` fn to add dependency dynamically and update project dependencies inside the lein's project
 
 ## Usage
 
@@ -17,7 +21,7 @@ In the future you'll start a repl (even without a project), start hacking, compo
 (ns cljsh.example)
 (use 'cljsh.repl)
 
-;; define fns using this macro instean of defn
+;; define fns using this macro instead of defn
 (defnc f1 [] (println (str "Any crazy code" (or true "even macros" "(you know 'or' is a macro)"))))
 (defnc f2 [] (println (str "Now use f1:" (f1))))
 
