@@ -1,4 +1,5 @@
 (clojure.core/ns cljsh.repl)
+(require '[rewrite-clj.zip :as z]) ;; manual
 
 (clojure.core/defn walk1 [inner outer form] (cond (list? form) (with-meta (outer (apply list (map inner form))) (meta form)) (instance? clojure.lang.IMapEntry form) (with-meta (outer (vec (map inner form))) (meta form)) (seq? form) (with-meta (outer (doall (map inner form))) (meta form)) (instance? clojure.lang.IRecord form) (with-meta (outer (reduce (fn [r x] (conj r (inner x))) form form)) (meta form)) (coll? form) (with-meta (outer (into (empty form) (map inner form))) (meta form)) :else (outer form)))
 
@@ -12,3 +13,4 @@
 
 (clojure.core/defn without-line-meta [s] (if (instance? clojure.lang.IMeta s) (vary-meta s (fn [m] (apply dissoc m [:line :column]))) s))
 (defmacro defnc [name & body] `(do (defn ~name ~@body) (.setMeta (var ~name) (assoc (meta (var ~name)) :ns-code (list 'ns (.name (.ns (var ~name)))) :code (list 'defn (.sym (var ~name)) ~@(map (fn [x] (list 'quote (prewalk1 without-line-meta x))) body))))))
+
