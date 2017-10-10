@@ -13,7 +13,7 @@
 
 (clojure.core/defn var->sym-filename [v] (let [sym (.sym v) ns (.name (.ns v)) fname (str (clojure.string/replace (clojure.string/replace ns #"\." "/") #"-" "_") ".clj")] (or (file-in-clsp fname) (str "src/" fname))))
 
-(clojure.core/defn rewrite [v] (when-let [upd (some-> v var->sym-filename z/of-file (z/find-token z/next (fn [n] (and (-> n z/sexpr #{(quote defn) (quote clojure.core/defn) (quote defnc)}) (-> n z/right z/sexpr (= (.sym v)))))) z/up (z/replace (-> v meta :code)))] (spit (-> v var->sym-filename) (z/root-string upd)) (z/sexpr upd)))
+(clojure.core/defn rewrite [v] (when-let [upd (some-> v var->sym-filename z/of-file (z/find-token z/next (fn [n] (and (-> n z/sexpr #{(quote defn) (quote def) (quote clojure.core/defn) (quote clojure.core/def) (quote defnc) (quote defc)}) (-> n z/right z/sexpr (= (.sym v)))))) z/up (z/replace (-> v meta :code)))] (spit (-> v var->sym-filename) (z/root-string upd)) (z/sexpr upd)))
 
 (clojure.core/defn save [v] (let [sym-filename (->> v var->sym-filename)] (clojure.java.io/make-parents sym-filename) (when-not (-> sym-filename clojure.java.io/file .exists) (spit sym-filename (-> v meta :ns-code))) (when-not (rewrite v) (spit sym-filename "\n\n" :append true) (spit sym-filename (-> v meta :code) :append true))))
 
