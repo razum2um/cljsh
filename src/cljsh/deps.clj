@@ -1,5 +1,6 @@
 (clojure.core/ns cljsh.deps)
 (require '[rewrite-clj.zip :as z]) ;; manual
+(require 'cemerick.pomegranate)
 
 (clojure.core/defn add-dep-to-project [dep-sym] (-> "project.clj" z/of-file (z/find-value z/next :dependencies) z/next (z/append-child (with-meta dep-sym {})) z/root-string (->> (spit "project.clj"))))
 
