@@ -102,3 +102,12 @@
         defnc-fn-body (cons 'cljsh.repl/defnc body)]
     (eval defnc-fn-body)
     (-> body first resolve cljsh.repl/save)))
+
+(clojure.core/defn source [v]
+  (or (-> v meta :code) (-> v .sym repl/source-fn)))
+
+(clojure.core/defn rewrite-defn [v]
+  (let [[_ & body] (-> v source read-string)
+        defnc-fn-body (cons 'cljsh.repl/defnc body)]
+    (eval defnc-fn-body)
+    (-> body first resolve save)))
