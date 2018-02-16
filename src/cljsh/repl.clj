@@ -2,7 +2,31 @@
   (:require [cljsh.postclj :as postclj]
             [rewrite-clj.zip :as z]))
 
-(clojure.core/defn walk1 [inner outer form] (cond (list? form) (with-meta (outer (apply list (map inner form))) (meta form)) (instance? clojure.lang.IMapEntry form) (with-meta (outer (vec (map inner form))) (meta form)) (seq? form) (with-meta (outer (doall (map inner form))) (meta form)) (instance? clojure.lang.IRecord form) (with-meta (outer (reduce (fn [r x] (conj r (inner x))) form form)) (meta form)) (coll? form) (with-meta (outer (into (empty form) (map inner form))) (meta form)) :else (outer form)))
+(clojure.core/defn walk1 [inner outer form]
+  (cond
+    (list? form) (with-meta
+                   (outer (apply list (map inner form)))
+                   (meta form))
+    (instance? clojure.lang.IMapEntry form) (with-meta
+                                              (outer
+                                                (vec (map inner form)))
+                                              (meta form))
+    (seq? form) (with-meta
+                  (outer (doall (map inner form)))
+                  (meta form))
+    (instance? clojure.lang.IRecord form) (with-meta
+                                            (outer
+                                              (reduce
+                                                (fn 
+                                                  [r x]
+                                                  (conj r (inner x)))
+                                                form
+                                                form))
+                                            (meta form))
+    (coll? form) (with-meta
+                   (outer (into (empty form) (map inner form)))
+                   (meta form))
+    :else (outer form)))
 
 (clojure.core/defn prewalk1 [f form] (walk1 (partial prewalk1 f) identity (f form)))
 
