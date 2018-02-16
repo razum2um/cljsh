@@ -28,7 +28,8 @@
                    (meta form))
     :else (outer form)))
 
-(clojure.core/defn prewalk1 [f form] (walk1 (partial prewalk1 f) identity (f form)))
+(clojure.core/defn prewalk1 [f form]
+  (walk1 (partial prewalk1 f) identity (f form)))
 
 (clojure.core/defn clsp [] (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader))))
 
@@ -83,7 +84,10 @@
         :append
         true))))
 
-(clojure.core/defn without-line-meta [s] (if (instance? clojure.lang.IMeta s) (vary-meta s (fn [m] (apply dissoc m [:line :column]))) s))
+(clojure.core/defn without-line-meta [s]
+  (if (instance? clojure.lang.IMeta s)
+    (vary-meta s (fn [m] (apply dissoc m [:line :column])))
+    s))
 
 (defmacro defnc [name & body] `(do (defn ~name ~@body) (.setMeta (var ~name) (assoc (meta (var ~name)) :ns-code (list 'ns (.name (.ns (var ~name)))) :code (list 'defn (.sym (var ~name)) ~@(map (fn [x] (list 'quote (prewalk1 without-line-meta x))) body))))))
 
