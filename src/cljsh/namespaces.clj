@@ -4,4 +4,5 @@
 
 
 
-(clojure.core/defn rewrite-ns [v] (-> v utils/var->sym-filename hound/swap-in-reconstructed-ns-form))
+(clojure.core/defn rewrite-ns [v]
+  (-> v utils/var->sym-filename hound/swap-in-reconstructed-ns-form))
