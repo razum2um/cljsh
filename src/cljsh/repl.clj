@@ -40,7 +40,24 @@
     (spit (-> v var->sym-filename) (z/root-string upd))
     (z/sexpr upd)))
 
-(clojure.core/defn save [v] (let [sym-filename (->> v var->sym-filename)] (clojure.java.io/make-parents sym-filename) (when-not (-> sym-filename clojure.java.io/file .exists) (spit sym-filename (-> v meta :ns-code))) (when-not (rewrite v) (spit sym-filename "\n\n" :append true) (spit sym-filename (-> v meta :code) :append true))))
+(clojure.core/defn save [v]
+  (let [sym-filename (->> v var->sym-filename)]
+    (clojure.java.io/make-parents sym-filename)
+    (when-not (-> sym-filename clojure.java.io/file .exists)
+      (spit sym-filename (-> v meta :ns-code)))
+    (when-not (rewrite v)
+      (spit sym-filename "\n\n" :append true)
+      (spit
+        sym-filename
+        (-> v
+         meta
+         :code
+         postclj/pprint
+         with-out-str
+         z/of-string
+         z/node)
+        :append
+        true))))
 
 (clojure.core/defn without-line-meta [s] (if (instance? clojure.lang.IMeta s) (vary-meta s (fn [m] (apply dissoc m [:line :column]))) s))
 
@@ -48,3 +65,12 @@
 
 (defmacro defc [name & body] `(do (def ~name ~@body) (.setMeta (var ~name) (assoc (meta (var ~name)) :ns-code (list 'ns (.name (.ns (var ~name)))) :code (list 'def (.sym (var ~name)) ~@(map (fn [x] (list 'quote (prewalk1 without-line-meta x))) body))))))
 
+
+
+
+
+(clojure.core/defn rewrite-usual-fn-in-ns [fn-sym]
+  (let [[_ & body] (-> fn-sym repl/source-fn read-string)
+        defnc-fn-body (cons 'cljsh.repl/defnc body)]
+    (eval defnc-fn-body)
+    (-> body first resolve cljsh.repl/save)))
