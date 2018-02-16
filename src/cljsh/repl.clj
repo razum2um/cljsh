@@ -104,10 +104,11 @@
     (-> body first resolve cljsh.repl/save)))
 
 (clojure.core/defn source [v]
-  (or (-> v meta :code) (-> v .sym repl/source-fn)))
+  (or (-> v meta :code) (some-> v .sym repl/source-fn read-string)))
 
 (clojure.core/defn rewrite-defn [v]
-  (let [[_ & body] (-> v source read-string)
+  (let [[_ & body] (source v)
         defnc-fn-body (cons 'cljsh.repl/defnc body)]
     (eval defnc-fn-body)
-    (-> body first resolve save)))
+    (-> body first resolve save)
+    (require (-> v .ns .name) :reload)))
