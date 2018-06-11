@@ -1,5 +1,6 @@
 (ns cljsh.repl
   (:require [cljsh.postclj :as postclj]
+            [cljsh.utils :as utils]
             [rewrite-clj.zip :as z]))
 
 (clojure.core/defn walk1 [inner outer form]
@@ -42,7 +43,7 @@
 (clojure.core/defn rewrite [v]
   (when-let [upd (some->
                    v
-                   var->sym-filename
+                   utils/var->sym-filename
                    z/of-file
                    (z/find-token
                      z/next
@@ -62,11 +63,11 @@
                       with-out-str
                       z/of-string
                       z/node)))]
-    (spit (-> v var->sym-filename) (z/root-string upd))
+    (spit (-> v utils/var->sym-filename) (z/root-string upd))
     (z/sexpr upd)))
 
 (clojure.core/defn save [v]
-  (let [sym-filename (->> v var->sym-filename)]
+  (let [sym-filename (->> v utils/var->sym-filename)]
     (clojure.java.io/make-parents sym-filename)
     (when-not (-> sym-filename clojure.java.io/file .exists)
       (spit sym-filename (-> v meta :ns-code)))
@@ -98,13 +99,13 @@
 
 
 (clojure.core/defn rewrite-usual-fn-in-ns [fn-sym]
-  (let [[_ & body] (-> fn-sym repl/source-fn read-string)
+  (let [[_ & body] (-> fn-sym clojure.repl/source-fn read-string)
         defnc-fn-body (cons 'cljsh.repl/defnc body)]
     (eval defnc-fn-body)
     (-> body first resolve cljsh.repl/save)))
 
 (clojure.core/defn source [v]
-  (or (-> v meta :code) (some-> v .sym repl/source-fn read-string)))
+  (or (-> v meta :code) (some-> v .sym clojure.repl/source-fn read-string)))
 
 (clojure.core/defn rewrite-defn [v]
   (let [[_ & body] (source v)
