@@ -105,7 +105,14 @@
     (-> body first resolve cljsh.repl/save)))
 
 (clojure.core/defn source [v]
-  (or (-> v meta :code) (some-> v .sym clojure.repl/source-fn read-string)))
+  (or
+    (-> v meta :code)
+    (let [ns (some-> v .ns .name (str "/"))]
+      (some->
+        (str ns (.sym v))
+        symbol
+        clojure.repl/source-fn
+        read-string))))
 
 (clojure.core/defn rewrite-defn [v]
   (let [[_ & body] (source v)
